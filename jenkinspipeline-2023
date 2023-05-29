@@ -1,0 +1,33 @@
+node{
+
+def mavenHome = tool name: "maven3.9.2"
+
+echo "Jenkins url is: ${env.JENKINS_URL}"
+echo "Node Name is: ${env.NODE_NAME}"
+echo "Job name is: ${env.JOB_NAME}"
+
+
+stage('CheckOutCode'){
+git credentialsId: '45c5c11b-51ae-4d52-86dc-afe86c04a061', url: 'https://github.com/irfan313pathan/maven-web-application.git'
+}
+
+stage('Build'){
+sh "${mavenHome}/bin/mvn clean package"
+}
+
+stage('ExecuteSonarQubeReport'){
+sh "${mavenHome}/bin/mvn clean sonar:sonar"
+
+}
+
+stage('UploadArtifactsIntoArtifactoryRepo'){
+sh "${mavenHome}/bin/mvn clean deploy"
+}
+
+stage('DeployAppIntoTomcatServer'){
+sshagent(['21755891-e340-43ed-aae9-9e27f52e1eef']) {
+ sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.33.81:/opt/apache-tomcat-9.0.73/webapps/"
+
+}
+}
+}
