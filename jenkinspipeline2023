@@ -31,11 +31,11 @@ sshagent(['21755891-e340-43ed-aae9-9e27f52e1eef']) {
 
 }//try block closing
 catch (e){
-slacknotifications('FAILED')
+slacknotifications('currentBuild.result')
 throw e
 }
 finally{
-slacknotifications('currentBuild.result')
+slacknotifications('SUCCESS')
 }
 
  
