@@ -35,7 +35,7 @@ slacknotifications(currentBuild.result)
 throw e
 }
 finally{
-slacknotifications('SUCCESS')
+slacknotifications('FAILED')
 }
 
  
