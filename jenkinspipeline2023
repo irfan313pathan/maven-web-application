@@ -57,7 +57,7 @@ def slacknotifications(String buildStatus = 'STARTED') {
  if (buildStatus == 'STARTED') {
     colorName = 'YELLOW'
     colorCode = '#FFFF00'
- } else if (buildStatus == 'SUCCESSFUL') {
+ } else if (buildStatus == 'SUCCESS') {
     colorName = 'GREEN'
     colorCode = '#00FF00'
  } else {
@@ -66,5 +66,5 @@ def slacknotifications(String buildStatus = 'STARTED') {
  }
 
   // Send notifications
-  slackSend (color: colorCode, message: summary)
+  slackSend (color: colorCode, message: summary, channel: "#pipeline-scriptedway")
 }
