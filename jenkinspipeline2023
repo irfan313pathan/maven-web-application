@@ -1,52 +1,82 @@
-node{
+pipeline{
 
-def mavenHome = tool name: "maven3.9.2"
+agent any
 
-try{
-slacknotifications('STARTED')
+tools{
+maven 'maven3.9.2'
+}
 
+triggers {
+  pollSCM ('* * * * *')
+  cron ('* * * * *')
+}
+options {
+  timestamps()
+  buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')
+}
+
+parameters
+{
+
+choice(choices: ['master', 'devlopment', 'prod'], description: 'select the Branch Name', name: 'BranchName') 
+
+string(defaultValue: 'Irfantech', description: 'Give the name parameter value', name: 'Name')
+
+} 
+
+//this stage will checkout the code
+stages{
 stage('CheckOutCode'){
-git credentialsId: '45c5c11b-51ae-4d52-86dc-afe86c04a061', url: 'https://github.com/irfan313pathan/maven-web-application.git'
+steps{
+slacknotifications('STARTED')
+git branch: "${params.BranchName}", credentialsId: '45c5c11b-51ae-4d52-86dc-afe86c04a061', url: 'https://github.com/irfan313pathan/maven-web-application.git'
 }
-
+}
+// This stage will build the package
 stage('Build'){
-sh "${mavenHome}/bin/mvn clean package"
+steps{
+sh "mvn clean package"
 }
-
+}
+//This stage will be execute sonarqube report
 stage('ExecuteSonarQubeReport'){
-sh "${mavenHome}/bin/mvn clean sonar:sonar"
-
+steps{
+sh "mvn clean sonar:sonar"
 }
-
+}
+//This stage upload the artifacts into nexus Repo
 stage('UploadArtifactsIntoArtifactoryRepo'){
-sh "${mavenHome}/bin/mvn clean deploy"
+steps{
+sh "mvn clean deploy"
 }
+}
+stage('DeployappintoTomcatserver')
 
-stage('DeployAppIntoTomcatServer'){
+steps{
 sshagent(['21755891-e340-43ed-aae9-9e27f52e1eef']) {
  sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.33.81:/opt/apache-tomcat-9.0.73/webapps/"
-
 }
 }
 
-}//try block closing
-catch (e){
-slacknotifications('currentBuild.result')
-throw e
-}
-finally{
-slacknotifications('SUCCESS')
+}//stages closing
+
+post {
+  success {
+    slacknotifications('currentBuild.result')
+  }
+  failure {
+    slacknotifications('currentBuild.result')
+  }
 }
 
- 
-}//Node closing
- 
+}//pipeline closing
+
 //Code Snippet For Sending slack notifications
 
 def slacknotifications(String buildStatus = 'STARTED') {
   // build status of null means successful
   buildStatus =  buildStatus ?: 'SUCCESS'
-  
+ { 
   
  // Default values
  def colorName = 'RED'
@@ -65,7 +95,6 @@ def slacknotifications(String buildStatus = 'STARTED') {
     colorName = 'RED'
     colorCode = '#FF0000'
  }
-
+ }
   // Send notifications
-  slackSend (color: colorCode, message: summary, channel: "#pipeline-scriptedway")
-}
+  slackSend (color: colorCode, message: summary, channel: "#jiomart")
