@@ -40,6 +40,7 @@ steps{
 sh "mvn clean package"
 }
 }
+/*
 //This stage will be execute sonarqube report
 stage('ExecuteSonarQubeReport'){
 steps{
@@ -52,16 +53,16 @@ steps{
 sh "mvn clean deploy"
 }
 }
-stage('DeployappintoTomcatserver'){
+stage('DeployappintoTomcatserver')
 
 steps{
 sshagent(['21755891-e340-43ed-aae9-9e27f52e1eef']) {
  sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.33.81:/opt/apache-tomcat-9.0.73/webapps/"
 }
 }
-
+*/
 }
-}//stages closing
+//stages closing
 
 post {
   success {
